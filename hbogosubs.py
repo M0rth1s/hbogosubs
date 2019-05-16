@@ -614,7 +614,7 @@ if __name__ == '__main__':
         'urls',
         nargs='*',
         metavar='url',
-        help='one or more URLs to a series, season or episode',
+        help='one or more URLs to a movie, series, season or episode',
     )
     parser.add_argument(
         '-c',
