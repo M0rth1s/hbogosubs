@@ -569,35 +569,34 @@ class HBOGoSubtitleDownloader(object):
                     else:
                         fps = 30  # Per TTML spec
 
-                else:
-                    div = xml_seg['tt']['body']['div']
+                div = xml_seg['tt']['body']['div']
 
-                    if div is None:
-                        # Empty subtitle file
-                        continue
+                if div is None:
+                    # Empty subtitle file
+                    continue
 
-                    subs = div['p']
+                subs = div['p']
 
-                    scale = int(stream['@TimeScale'])
-                    offset = t / scale
+                scale = int(stream['@TimeScale'])
+                offset = t / scale
 
-                    for p in subs:
-                        for a in ('@begin', '@end'):
-                            tc = p[a]
-                            (h, m, s, f) = [int(x) for x in tc.split(':')]
-                            total = round(h*3600 + m*60 + s + f/fps + offset, 3)
-                            p[a] = f'{total}s'
+                for p in subs:
+                    for a in ('@begin', '@end'):
+                        tc = p[a]
+                        (h, m, s, f) = [int(x) for x in tc.split(':')]
+                        total = round(h*3600 + m*60 + s + f/fps + offset, 3)
+                        p[a] = f'{total}s'
 
-                        begin = float(p['@begin'][:-1])
-                        end = float(p['@end'][:-1])
+                    begin = float(p['@begin'][:-2])
+                    end = float(p['@end'][:-2])
 
-                        if end < begin:
-                            self.logger.error(
-                                f'End time is earlier than start time ({end} < {begin})',
-                            )
-                            return
+                    if end < begin:
+                        self.logger.error(
+                            f'End time is earlier than start time ({end} < {begin})',
+                        )
+                        return
 
-                    xml['tt']['body']['div']['p'].extend(subs)
+                xml['tt']['body']['div']['p'].extend(subs)
 
             xml_data = xmltodict.unparse(xml, pretty=True)
             xml_data = xml_data.replace('{{BR}}', '<br />')
