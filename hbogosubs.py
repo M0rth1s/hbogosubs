@@ -520,7 +520,7 @@ class HBOGoSubtitleDownloader(object):
 
             ts = ts[:-1]  # Remove nonexistent last segment
 
-            xml = None
+            xml = {'tt': {'body': {'div': {'p': []}}}}
 
             for (i, t) in enumerate(ts):
                 #print(f'\rDownloading: {t/ts[-1]:.0%}', end='')
@@ -550,13 +550,11 @@ class HBOGoSubtitleDownloader(object):
                 )
 
                 if i == 0:
-                    xml = xml_seg
+                    fps_base = xml_seg['tt'].get('@ttp:frameRate')
+                    fps_mult = xml_seg['tt'].get('@ttp:frameRateMultiplier')
 
-                    fps_base = xml['tt'].get('@ttp:frameRate')
-                    fps_mult = xml['tt'].get('@ttp:frameRateMultiplier')
-
-                    if xml['tt']['body']['div'] is None:
-                        xml['tt']['body']['div'] = {'p': []}
+                    if xml_seg['tt']['body']['div'] is None:
+                        xml_seg['tt']['body']['div'] = {'p': []}
 
                     if fps_base:
                         if fps_mult:
