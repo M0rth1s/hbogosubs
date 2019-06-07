@@ -23,7 +23,7 @@ from pymp4.parser import Box
 
 
 class HBOGoSubtitleDownloader(object):
-    def __init__(self, region, config_dir, output_dir='.', force_ism=False):
+    def __init__(self, region, config_dir, output_dir='.', force_ism=False, output_format='srt'):
         self.logger = logging.getLogger('hbogosubs')
 
         self.region = pycountry.countries.get(alpha_2=region.upper())
@@ -45,6 +45,13 @@ class HBOGoSubtitleDownloader(object):
         self.output_dir = output_dir
 
         self.force_ism = force_ism
+        self.output_format = output_format
+
+        if self.output_format != 'srt' and not self.force_ism:
+            self.logger.warning(
+                f'Requested output format {self.output_format!r} '
+                f'will be ignored because force_ism (-F) was not used',
+            )
 
         self.operators = {}
 
@@ -432,7 +439,7 @@ class HBOGoSubtitleDownloader(object):
             self.download_subtitles(sub_tracks, content_name)
         else:
             self.logger.info('Downloading subtitles from manifest')
-            self.download_from_ism(resp['Purchase']['MediaUrl'], content_name, 'srt')
+            self.download_from_ism(resp['Purchase']['MediaUrl'], content_name, self.output_format)
 
     def download_subtitles(self, sub_tracks, output_name):
         for (index, track) in enumerate(sub_tracks):
@@ -489,7 +496,7 @@ class HBOGoSubtitleDownloader(object):
                 sys.exit(1)
 
             index -= 2
-            output = f'{output_name.replace(" ", ".")}.{lang}.{index}.srt'
+            output = f'{output_name.replace(" ", ".")}.{lang}.{index}.{output_format}'
             output = pathvalidate.sanitize_filename(output)
             output = os.path.join(self.output_dir, output)
             self.logger.info(f'Saving subtitle track #{index} to {output}')
@@ -638,6 +645,13 @@ if __name__ == '__main__':
         help='force downloading subtitles from manifest even if direct URL is available',
     )
     parser.add_argument(
+        '-f',
+        '--output-format',
+        choices=('srt', 'ttml'),
+        default='srt',
+        help='subtitle output format',
+    )
+    parser.add_argument(
         '-d',
         '--debug',
         action='store_true',
@@ -698,7 +712,9 @@ if __name__ == '__main__':
                 sys.exit(1)
             region = reg
 
-        downloader = HBOGoSubtitleDownloader(region, args.config_dir, args.output_dir, args.force_ism)
+        downloader = HBOGoSubtitleDownloader(
+            region, args.config_dir, args.output_dir, args.force_ism, args.output_format,
+        )
         downloader.configure()
         downloader.login()
 
