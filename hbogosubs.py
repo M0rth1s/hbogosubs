@@ -599,7 +599,7 @@ class HBOGoSubtitleDownloader(object):
 
                     xml['tt']['body']['div']['p'].extend(subs)
 
-            xml_data = xmltodict.unparse(xml)
+            xml_data = xmltodict.unparse(xml, pretty=True)
             xml_data = xml_data.replace('{{BR}}', '<br />')
 
             os.makedirs(self.output_dir, exist_ok=True)
