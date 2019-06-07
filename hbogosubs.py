@@ -23,7 +23,7 @@ from pymp4.parser import Box
 
 
 class HBOGoSubtitleDownloader(object):
-    def __init__(self, region, config_dir, output_dir):
+    def __init__(self, region, config_dir, output_dir='.', force_ism=False):
         self.logger = logging.getLogger('hbogosubs')
 
         self.region = pycountry.countries.get(alpha_2=region.upper())
@@ -43,6 +43,8 @@ class HBOGoSubtitleDownloader(object):
         self.deviceinfo_file = os.path.join(self.config_dir, 'deviceinfo.json')
 
         self.output_dir = output_dir
+
+        self.force_ism = force_ism
 
         self.operators = {}
 
@@ -183,7 +185,7 @@ class HBOGoSubtitleDownloader(object):
             if operator['web']:
                 s += ' (direct login)'
 
-            if args.debug:
+            if self.logger.getEffectiveLevel() == logging.DEBUG:
                 s += f' [{op_id}]'
 
             print(s)
@@ -414,7 +416,7 @@ class HBOGoSubtitleDownloader(object):
 
         subtitles = resp['Purchase'].get('Subtitles')
         sub_tracks = []
-        if subtitles and not args.force_ttml:
+        if subtitles and not self.force_ism:
             for sub in subtitles:
                 if not sub['Url']:
                     continue
@@ -696,7 +698,7 @@ if __name__ == '__main__':
                 sys.exit(1)
             region = reg
 
-        downloader = HBOGoSubtitleDownloader(region, args.config_dir, args.output_dir)
+        downloader = HBOGoSubtitleDownloader(region, args.config_dir, args.output_dir, args.force_ism)
         downloader.configure()
         downloader.login()
 
