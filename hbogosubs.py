@@ -631,9 +631,9 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '-F',
-        '--force-ttml',
+        '--force-ism',
         action='store_true',
-        help='force downloading TTML subtitles even if SRT is available',
+        help='force downloading subtitles from manifest even if direct URL is available',
     )
     parser.add_argument(
         '-d',
