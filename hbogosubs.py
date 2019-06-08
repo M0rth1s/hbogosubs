@@ -47,12 +47,6 @@ class HBOGoSubtitleDownloader(object):
         self.force_ism = force_ism
         self.output_format = output_format
 
-        if self.output_format != 'srt' and not self.force_ism:
-            self.logger.warning(
-                f'Requested output format {self.output_format!r} '
-                f'will be ignored because force_ism (-F) was not used',
-            )
-
         self.operators = {}
 
         self.operator_id = None
@@ -442,6 +436,13 @@ class HBOGoSubtitleDownloader(object):
             self.download_from_ism(resp['Purchase']['MediaUrl'], content_name, self.output_format)
 
     def download_subtitles(self, sub_tracks, output_name):
+        if self.output_format != 'srt' and not self.force_ism:
+            self.logger.warning(
+                f'Requested output format {self.output_format!r} '
+                f'will be ignored for direct subtitle download. '
+                f'You may want to use the force_ism (-F) option.',
+            )
+
         for (index, track) in enumerate(sub_tracks):
             index += 1
 
