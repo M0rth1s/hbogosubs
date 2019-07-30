@@ -9,6 +9,7 @@ import os
 import re
 import sys
 import traceback
+import uuid
 from getpass import getpass
 from operator import truediv
 from urllib.parse import urlparse
@@ -207,16 +208,10 @@ class HBOGoSubtitleDownloader(object):
         print()
 
     def silentregister(self):
-        self.logger.info('Registering device...')
-
-        r = self.session.post(f'https://{self.region.alpha_2}.hbogo.eu/services/settings/silentregister.aspx')
-        resp = r.json()
-
-        #self.check_error(r.status_code, resp)
+        self.logger.debug('Generating device ID...')
 
         self.device_registered = True
-        self.device_id = resp['Data']['Customer']['CurrentDevice']['Id']
-        self.logger.debug(f'Got device ID: {self.device_id}')
+        self.device_id = str(uuid.uuid4())
 
         with open(self.deviceinfo_file, 'w') as fd:
             json.dump({
