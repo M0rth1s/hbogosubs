@@ -654,7 +654,7 @@ if __name__ == '__main__':
         '-v',
         '--version',
         action='version',
-        version='%(prog)s 1.1.3',
+        version='%(prog)s 1.1.4',
     )
     args = parser.parse_args()
 
