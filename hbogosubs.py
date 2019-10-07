@@ -8,6 +8,7 @@ import logging
 import os
 import re
 import sys
+import time
 import traceback
 import uuid
 from getpass import getpass
@@ -263,7 +264,8 @@ class HBOGoSubtitleDownloader(object):
         self.logger.debug(resp)
 
         if not r.check_ok:
-            self.logger.warning('Login failed, attempting to re-register device')
+            self.logger.warning('Login failed, attempting to re-register device in 5 seconds')
+            time.sleep(5)
             self.silentregister()
             return self.login()
 
