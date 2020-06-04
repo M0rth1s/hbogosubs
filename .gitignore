@@ -2,6 +2,9 @@
 __pycache__/
 *.py[cdo]
 
+# pyenv
+.python-version
+
 # PyInstaller
 build/
 dist/
