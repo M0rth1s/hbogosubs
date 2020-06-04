@@ -15,4 +15,5 @@ dist/
 
 # Project-specific
 config/
-**/*.srt
+*.srt
+*.ttml
