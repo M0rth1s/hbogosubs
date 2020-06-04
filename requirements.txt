@@ -1,14 +1,7 @@
--i https://pypi.org/simple
-beautifulsoup4==4.7.1
-certifi==2019.3.9
-chardet==3.0.4
-construct==2.8.8
-git+https://github.com/nyuszika7h/pycaption.git@7861557cb0e977aa7849a2a511952ba31c7eb395#egg=pycaption
-idna==2.8
-pathvalidate==0.28.0
-pycountry==18.12.8
-pymp4==1.1.0
-requests==2.21.0
-soupsieve==1.9.1
-urllib3==1.24.3
-xmltodict==0.12.0
+beautifulsoup4>=4.7.1,<4.9.0
+le-pycaption>=2.2.0a1
+pathvalidate>=0.28.0
+pycountry>=18.12.8
+pymp4>=1.1.0
+requests>=2.21.0
+xmltodict>=0.12.0
