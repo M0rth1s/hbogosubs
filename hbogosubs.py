@@ -583,8 +583,8 @@ class HBOGoSubtitleDownloader(object):
                         total = round(h*3600 + m*60 + s + f/fps + offset, 3)
                         p[a] = f'{total}s'
 
-                    begin = float(p['@begin'][:-2])
-                    end = float(p['@end'][:-2])
+                    begin = float(p['@begin'][:-1])
+                    end = float(p['@end'][:-1])
 
                     if end < begin:
                         self.logger.error(
