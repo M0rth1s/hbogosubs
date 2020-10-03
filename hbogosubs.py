@@ -164,10 +164,14 @@ class HBOGoSubtitleDownloader(object):
             if r.check_ok:
                 operators += resp.get('Items', [])
 
+        self.logger.debug('Available operators:')
+
         for operator in operators:
+            self.logger.debug(f'{operator["Id"]} - {operator["Name"]} - {operator.get("Type")}')
+
             op_id = operator['Id']
             op_name = operator['Name']
-            op_web = (operator.get('Type') == 'D2_C')
+            op_web = (operator.get('Type') is not None)
 
             self.operators[op_id] = {
                 'name': op_name,
