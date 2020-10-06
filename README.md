@@ -1,4 +1,4 @@
-![Logo](https://i.imgur.com/H32t298.png)
+![Logo](https://widevine.is-a.fail/e0M2Sb.png)
 
 # hbogosubs
 
