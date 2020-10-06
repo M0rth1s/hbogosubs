@@ -459,7 +459,9 @@ class HBOGoSubtitleDownloader(object):
             output = os.path.join(self.output_dir, output)
             self.logger.info(f'Saving subtitle track #{index} to {output}')
 
-            r = self.session.get(track['url'])
+            r = self.session.get(track['url'], hooks={
+                'response': lambda r, *args, **kwargs: self.check_error(r, fatal=False),
+            })
 
             if r.content.startswith(b'\xef\xbb\xbf'):
                 self.logger.debug('Encoding detected as: utf-8-sig')
