@@ -1,3 +1,4 @@
 [flake8]
-max-line-length = 149
+max-line-length = 150
 ignore = E226, E265
+builtins = Analysis, PYZ, EXE

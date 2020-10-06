@@ -1,11 +1,13 @@
-# -*- mode: python -*-
+# vim: set ft=python:
+
+from PyInstaller.utils.hooks import copy_metadata
 
 block_cipher = None
 
 
 a = Analysis(['hbogosubs.py'],
              binaries=[],
-             datas=[],
+             datas=copy_metadata('pycountry'),
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
