@@ -334,7 +334,7 @@ class HBOGoSubtitleDownloader(object):
             self.logger.info(f'Content type: {content_type.title()}')
             self.download_show(sids, wanted_ep)
         elif raw_content_type == 'movie':
-            self.logger.info(f'Content type: Movie')
+            self.logger.info('Content type: Movie')
 
             external_id = int(details.get('data-external-id'))
             self.download_movie(external_id)
