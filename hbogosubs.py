@@ -133,7 +133,7 @@ class HBOGoSubtitleDownloader(object):
 
             self.operator_id = self.select_operator()
 
-            if self.operators[self.operator_id]['web']:
+            if self.operators[self.operator_id]['type']:
                 self.username = input('Enter email: ')
             else:
                 self.username = input('Enter username: ')
@@ -171,11 +171,11 @@ class HBOGoSubtitleDownloader(object):
 
             op_id = operator['Id']
             op_name = operator['Name']
-            op_web = (operator.get('Type') is not None)
+            op_type = operator.get('Type')
 
             self.operators[op_id] = {
                 'name': op_name,
-                'web': op_web,
+                'type': op_type,
             }
 
     def select_operator(self):
@@ -189,7 +189,7 @@ class HBOGoSubtitleDownloader(object):
         for (i, (op_id, operator)) in enumerate(self.operators.items()):
             s = f'[{i}] {operator["name"]}'
 
-            if operator['web']:
+            if operator['type'] == 'D2_C':
                 s += ' (direct login)'
 
             if self.logger.getEffectiveLevel() == logging.DEBUG:
@@ -249,7 +249,7 @@ class HBOGoSubtitleDownloader(object):
             'Password': self.password,
         }
 
-        if self.operators[self.operator_id]['web']:
+        if self.operators[self.operator_id]['type']:
             auth_url = f'https://api.ugw.hbogo.eu/v3.0/Authentication/{self.region.alpha_3}/JSON/ENG/COMP'
         else:
             auth_url = f'https://{self.region.alpha_2}gwapi.hbogo.eu/v2.1/Authentication/json/ENG/COMP'
