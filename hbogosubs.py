@@ -550,6 +550,7 @@ class HBOGoSubtitleDownloader(object):
                         'http://www.w3.org/2006/10/ttaf1': None,
                         'http://www.w3.org/2006/10/ttaf1#metadata': None,
                         'http://www.w3.org/2006/10/ttaf1#styling': None,
+                        'http://www.w3.org/ns/ttml': None,
                     },
                 )
 
@@ -577,7 +578,7 @@ class HBOGoSubtitleDownloader(object):
                     # Empty subtitle file
                     continue
 
-                subs = div['p']
+                subs = div.get('p', [])
 
                 scale = int(stream['@TimeScale'])
                 offset = t / scale
@@ -585,7 +586,11 @@ class HBOGoSubtitleDownloader(object):
                 for p in subs:
                     for a in ('@begin', '@end'):
                         tc = p[a]
-                        (h, m, s, f) = [int(x) for x in tc.split(':')]
+                        if '.' in tc:
+                            (h, m, s) = [float(x) for x in tc.split(':')]
+                            f = 0
+                        else:
+                            (h, m, s, f) = [int(x) for x in tc.split(':')]
                         total = round(h*3600 + m*60 + s + f/fps + offset, 3)
                         p[a] = f'{total}s'
 
