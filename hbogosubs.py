@@ -22,6 +22,7 @@ import pycountry
 import requests
 import xmltodict
 from pymp4.parser import Box
+from tqdm import tqdm
 
 
 class HBOGoSubtitleDownloader(object):
@@ -363,6 +364,7 @@ class HBOGoSubtitleDownloader(object):
                 content_id = ep['media_id']
                 content_name = f'{series} S{season:02}E{episode:02}'
 
+                print()
                 self.logger.info(f'Downloading subtitles for {content_name}')
                 self.logger.debug(f'Content ID: {content_id}')
 
@@ -502,7 +504,7 @@ class HBOGoSubtitleDownloader(object):
             output = f'{output_name.replace(" ", ".")}.{lang}.{index}.{output_format}'
             output = pathvalidate.sanitize_filename(output)
             output = os.path.join(self.output_dir, output)
-            self.logger.info(f'Saving subtitle track #{index} to {output}')
+            self.logger.info(f'Downloading subtitle track #{index} ({lang})')
 
             path = stream['@Url'].replace('{bitrate}', stream['QualityLevel']['@Bitrate'])
             t = 0
@@ -525,9 +527,8 @@ class HBOGoSubtitleDownloader(object):
 
             xml = {'tt': {'body': {'div': {'p': []}}}}
 
-            for (i, t) in enumerate(ts):
-                #print(f'\rDownloading: {t/ts[-1]:.0%}', end='')
-                self.logger.debug(f'Downloading segment {i + 1} of {len(ts)}')
+            for i in tqdm(range(len(ts)), unit='seg'):
+                t = ts[i]
                 seg_url = f'{url}/{path.replace("{start time}", str(t))}'
                 seg = self.session.get(seg_url).content
 
@@ -609,11 +610,12 @@ class HBOGoSubtitleDownloader(object):
 
             os.makedirs(self.output_dir, exist_ok=True)
 
+            self.logger.info(f'Converting and saving to {output}')
+
             with open(output, 'wb') as fd:
                 if output_format == 'ttml':
                     fd.write(xml_data.encode('utf-8-sig'))
                 elif output_format == 'srt':
-                    self.logger.debug('Converting to SRT')
                     r = pycaption.DFXPReader().read(xml_data)
                     w = pycaption.SRTWriter().write(r)
                     fd.write(w.encode('utf-8-sig'))
