@@ -488,10 +488,9 @@ class HBOGoSubtitleDownloader(object):
         manifest = xmltodict.parse(r.content, force_list={'StreamIndex', 'c'})
         self.logger.debug(json.dumps(manifest, indent=4))
 
-        for (index, stream) in enumerate(manifest['SmoothStreamingMedia']['StreamIndex']):
-            if stream['@Type'] != 'text':
-                continue
+        streams = [x for x in manifest['SmoothStreamingMedia']['StreamIndex'] if x['@Type'] == 'text']
 
+        for (index, stream) in enumerate(streams):
             lang = stream['@Language'].lower()
 
             fmt = stream['QualityLevel']['@FourCC'].upper()
@@ -499,7 +498,7 @@ class HBOGoSubtitleDownloader(object):
                 self.logger.error(f'Stream has unsupported subtitle format: {fmt!r}')
                 sys.exit(1)
 
-            index -= 2
+            index += 1
             output = f'{output_name.replace(" ", ".")}.{lang}.{index}.{output_format}'
             output = pathvalidate.sanitize_filename(output)
             output = os.path.join(self.output_dir, output)
