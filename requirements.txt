@@ -4,4 +4,5 @@ pathvalidate>=0.28.0
 pycountry>=18.12.8
 pymp4>=1.1.0
 requests>=2.21.0
+tqdm>=4.51.0
 xmltodict>=0.12.0
