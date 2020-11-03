@@ -389,7 +389,7 @@ class HBOGoSubtitleDownloader(object):
     def download_content(self, content_id, content_name):
         payload = {
             'Purchase': {
-                '@xmlns': 'go:v7:interop',
+                '@xmlns': 'go:v8:interop',
                 '@xmlns:i': 'http://www.w3.org/2001/XMLSchema-instance',
                 'AllowHighResolution': 'false',
                 'ContentId': content_id,
@@ -406,7 +406,7 @@ class HBOGoSubtitleDownloader(object):
         #self.logger.debug(f'Payload: {raw_payload}')
 
         r = self.session.post(
-            f'https://{self.region.alpha_2}api.hbogo.eu/v7/Purchase/json/ENG/COMP',
+            f'https://{self.region.alpha_2}api.hbogo.eu/v8/Purchase/json/ENG/COMP',
             data=raw_payload,
         )
         resp = r.json()
