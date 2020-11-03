@@ -350,7 +350,7 @@ class HBOGoSubtitleDownloader(object):
             r = self.session.get(f'https://hbogo.{self.region.alpha_2}/api/modal/meta/season/{sid}/ext')
             resp = r.json()
 
-            series = resp['title']
+            series = resp['english_title']
 
             for ep in resp['episodes']:
                 season = int(ep['season_number'])
