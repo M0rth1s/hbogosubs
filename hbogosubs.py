@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import re
+import signal
 import sys
 import time
 import uuid
@@ -659,6 +660,8 @@ class HBOGoSubtitleDownloader(object):
 
 
 if __name__ == '__main__':
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+
     parser = argparse.ArgumentParser(
         prog='hbogosubs',
         formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=30),
