@@ -9,7 +9,6 @@ import os
 import re
 import sys
 import time
-import traceback
 import uuid
 from getpass import getpass
 from operator import truediv
@@ -26,11 +25,8 @@ from tqdm import tqdm
 
 
 class HBOGoSubtitleDownloader(object):
-    def __init__(self, region, config_dir, output_dir='.', force_ism=False, output_format='srt'):
+    def __init__(self):
         self.logger = logging.getLogger('hbogosubs')
-
-        self.region = pycountry.countries.get(alpha_2=region.upper())
-        self.logger.info(f'Region detected as: {self.region.name}')
 
         self.session = requests.Session()
         self.session.hooks = {
@@ -40,15 +36,6 @@ class HBOGoSubtitleDownloader(object):
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                           '(KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36',
         }
-
-        self.config_dir = os.path.join(config_dir, self.region.alpha_2)
-        self.config_file = os.path.join(self.config_dir, 'config.json')
-        self.deviceinfo_file = os.path.join(self.config_dir, 'deviceinfo.json')
-
-        self.output_dir = output_dir
-
-        self.force_ism = force_ism
-        self.output_format = output_format
 
         self.operators = {}
 
@@ -108,7 +95,7 @@ class HBOGoSubtitleDownloader(object):
 
     def configure(self):
         os.makedirs(self.config_dir, exist_ok=True)
-        os.makedirs(self.output_dir, exist_ok=True)
+        os.makedirs(self.args.output_dir, exist_ok=True)
 
         self.get_operators()
 
@@ -420,7 +407,7 @@ class HBOGoSubtitleDownloader(object):
 
         subtitles = resp['Purchase'].get('Subtitles')
         sub_tracks = []
-        if subtitles and not self.force_ism:
+        if subtitles and not self.args.force_ism:
             for sub in subtitles:
                 if not sub['Url']:
                     continue
@@ -436,12 +423,12 @@ class HBOGoSubtitleDownloader(object):
             self.download_subtitles(sub_tracks, content_name)
         else:
             self.logger.info('Downloading subtitles from manifest')
-            self.download_from_ism(resp['Purchase']['MediaUrl'], content_name, self.output_format)
+            self.download_from_ism(resp['Purchase']['MediaUrl'], content_name, self.args.output_format)
 
     def download_subtitles(self, sub_tracks, output_name):
-        if self.output_format != 'srt' and not self.force_ism:
+        if self.args.output_format != 'srt' and not self.args.force_ism:
             self.logger.warning(
-                f'Requested output format {self.output_format!r} '
+                f'Requested output format {self.args.output_format!r} '
                 f'will be ignored for direct subtitle download. '
                 f'You may want to use the force_ism (-F) option.',
             )
@@ -458,7 +445,7 @@ class HBOGoSubtitleDownloader(object):
 
             output = f'{output_name.replace(" ", ".")}.{lang}.{index}.srt'
             output = pathvalidate.sanitize_filename(output)
-            output = os.path.join(self.output_dir, output)
+            output = os.path.join(self.args.output_dir, output)
             self.logger.info(f'Saving subtitle track #{index} to {output}')
 
             r = self.session.get(track['url'], hooks={
@@ -471,7 +458,7 @@ class HBOGoSubtitleDownloader(object):
             else:
                 self.logger.debug(f'Encoding detected as: {r.encoding}')
 
-            os.makedirs(self.output_dir, exist_ok=True)
+            os.makedirs(self.args.output_dir, exist_ok=True)
 
             with open(output, 'wb') as fd:
                 fd.write(r.text.encode('utf-8-sig'))
@@ -503,7 +490,7 @@ class HBOGoSubtitleDownloader(object):
             index += 1
             output = f'{output_name.replace(" ", ".")}.{lang}.{index}.{output_format}'
             output = pathvalidate.sanitize_filename(output)
-            output = os.path.join(self.output_dir, output)
+            output = os.path.join(self.args.output_dir, output)
             self.logger.info(f'Downloading subtitle track #{index} ({lang})')
 
             path = stream['@Url'].replace('{bitrate}', stream['QualityLevel']['@Bitrate'])
@@ -527,8 +514,7 @@ class HBOGoSubtitleDownloader(object):
 
             xml = {'tt': {'body': {'div': {'p': []}}}}
 
-            for i in tqdm(range(len(ts)), unit='seg'):
-                t = ts[i]
+            for t in tqdm(ts, unit='seg'):
                 seg_url = f'{url}/{path.replace("{start time}", str(t))}'
                 seg = self.session.get(seg_url).content
 
@@ -608,7 +594,7 @@ class HBOGoSubtitleDownloader(object):
             xml_data = xmltodict.unparse(xml, pretty=True)
             xml_data = xml_data.replace('{{BR}}', '<br />')
 
-            os.makedirs(self.output_dir, exist_ok=True)
+            os.makedirs(self.args.output_dir, exist_ok=True)
 
             self.logger.info(f'Converting and saving to {output}')
 
@@ -619,6 +605,57 @@ class HBOGoSubtitleDownloader(object):
                     r = pycaption.DFXPReader().read(xml_data)
                     w = pycaption.SRTWriter().write(r)
                     fd.write(w.encode('utf-8-sig'))
+
+    def main(self, args):
+        self.args = args
+
+        if getattr(sys, 'frozen', False):
+            SCRIPT_PATH = os.path.dirname(sys.executable)
+        else:
+            SCRIPT_PATH = os.path.dirname(__file__)
+
+        self.logger.debug(f'Script path: {SCRIPT_PATH}')
+
+        if not args.config_dir:
+            args.config_dir = os.path.join(SCRIPT_PATH, 'config')
+
+        if args.urls:
+            urls = args.urls
+        else:
+            urls = input('Enter URLs (separated by space): ').split()
+
+        if not urls:
+            self.logger.info('No URLs to download')
+            sys.exit(0)
+
+        URL_PATTERN = re.compile(r'https?://(?:www\.)?hbogo\.(hu|cz|sk|ro|pl|hr|rs|si|mk|me|bg|ba)/')
+        region = None
+        for url in urls:
+            m = re.match(URL_PATTERN, url)
+
+            if not m:
+                self.logger.error(f'Unsupported URL: {url!r}. This script currently only supports HBO GO Europe.')
+                sys.exit(1)
+
+            reg = m.group(1)
+            if region and reg != region:
+                self.logger.error('You may not mix URLs from multiple HBO GO regions in a single invocation.')
+                sys.exit(1)
+            region = reg
+        self.region = pycountry.countries.get(alpha_2=region.upper())
+        self.logger.info(f'Region detected as: {self.region.name}')
+
+        self.config_dir = os.path.join(args.config_dir, self.region.alpha_2)
+        self.config_file = os.path.join(self.config_dir, 'config.json')
+        self.deviceinfo_file = os.path.join(self.config_dir, 'deviceinfo.json')
+
+        downloader.configure()
+        downloader.login()
+
+        for url in urls:
+            downloader.download_url(url)
+
+        self.logger.info('Downloads finished')
 
 
 if __name__ == '__main__':
@@ -672,75 +709,11 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    interrupted = False
-    errored = False
+    logging.basicConfig(
+        format='[%(asctime)s] %(levelname)s - %(name)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+        level=(logging.DEBUG if args.debug else logging.INFO),
+    )
 
-    try:
-        logging.basicConfig(
-            format='%(asctime)s  %(levelname)s: %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S',
-            level=(logging.DEBUG if args.debug else logging.INFO),
-        )
-        logger = logging.getLogger('hbogosubs')
-
-        if getattr(sys, 'frozen', False):
-            SCRIPT_PATH = os.path.dirname(sys.executable)
-        else:
-            SCRIPT_PATH = os.path.dirname(__file__)
-
-        logger.debug(f'Script path: {SCRIPT_PATH}')
-
-        if not args.config_dir:
-            args.config_dir = os.path.join(SCRIPT_PATH, 'config')
-
-        if args.urls:
-            urls = args.urls
-        else:
-            urls = input('Enter URLs (separated by space): ').split()
-
-        if not urls:
-            logger.info('No URLs to download')
-            sys.exit(0)
-
-        URL_PATTERN = re.compile(r'https?://(?:www\.)?hbogo\.(hu|cz|sk|ro|pl|hr|rs|si|mk|me|bg|ba)/')
-
-        region = None
-
-        for url in urls:
-            m = re.match(URL_PATTERN, url)
-
-            if not m:
-                logger.error(f'Unsupported URL: {url!r}. This script currently only supports HBO GO Europe.')
-                sys.exit(1)
-
-            reg = m.group(1)
-            if region and reg != region:
-                logger.error('You may not mix URLs from multiple HBO GO regions in a single invocation.')
-                sys.exit(1)
-            region = reg
-
-        downloader = HBOGoSubtitleDownloader(
-            region, args.config_dir, args.output_dir, args.force_ism, args.output_format,
-        )
-        downloader.configure()
-        downloader.login()
-
-        for url in urls:
-            downloader.download_url(url)
-
-        logger.info('Downloads finished')
-    except KeyboardInterrupt:
-        interrupted = True
-    except Exception:
-        errored = True
-        traceback.print_exc()
-    finally:
-        if interrupted:
-            sys.exit(0)
-
-        if not args.urls:
-            print('\nPress Enter to exit')
-            input()
-
-        if errored:
-            sys.exit(1)
+    downloader = HBOGoSubtitleDownloader()
+    downloader.main(args)
