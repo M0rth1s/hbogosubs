@@ -513,7 +513,7 @@ class HBOGoSubtitleDownloader(object):
 
             xml = {'tt': {'body': {'div': {'p': []}}}}
 
-            for t in tqdm(ts, unit='seg'):
+            for t in tqdm(ts, unit='seg', disable=self.args.debug):
                 seg_url = f'{url}/{path.replace("{start time}", str(t))}'
                 seg = self.session.get(seg_url).content
 
