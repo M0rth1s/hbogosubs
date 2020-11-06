@@ -654,6 +654,7 @@ class HBOGoSubtitleDownloader(object):
         for url in urls:
             downloader.download_url(url)
 
+        print()
         self.logger.info('Downloads finished')
 
 
