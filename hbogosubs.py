@@ -524,7 +524,7 @@ class HBOGoSubtitleDownloader(object):
                 data = self.ismt_to_ttml(seg).decode('utf-8')
 
                 assert '{{BR}}' not in data, 'input data contains br placeholder'
-                data = re.sub(r'<br ?/>', '{{BR}}', data)
+                data = re.sub(r'<br\s*/?>\s*(</br>)?', '{{BR}}', data)
 
                 xml_seg = xmltodict.parse(
                     data,
