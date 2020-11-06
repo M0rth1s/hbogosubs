@@ -149,7 +149,6 @@ class HBOGoSubtitleDownloader(object):
                 'response': lambda r, *args, **kwargs: self.check_error(r, fatal=False),
             })
             resp = r.json()
-            #ok = self.check_error(r.status_code, resp, fatal=False)
             if r.check_ok:
                 operators += resp.get('Items', [])
 
@@ -280,14 +279,10 @@ class HBOGoSubtitleDownloader(object):
         self.logger.info('Login successful')
         self.logger.debug(resp)
 
-        #r = self.session.get(f'https://api.ugw.hbogo.eu/v3.0/DeviceInformations/JSON/{self.region.alpha_3}/COMP')
-        #self.logger.debug(f'Device info: {r.json()}')
-
     def download_url(self, url):
         self.logger.info(f'Downloading: {url!r}')
 
         r = self.session.get(url)
-        #self.check_error(r.status_code, {})
 
         soup = bs4.BeautifulSoup(r.text, 'lxml-html')
 
@@ -395,7 +390,6 @@ class HBOGoSubtitleDownloader(object):
         }
 
         raw_payload = xmltodict.unparse(payload, full_document=False)
-        #self.logger.debug(f'Payload: {raw_payload}')
 
         r = self.session.post(
             f'https://{self.region.alpha_2}api.hbogo.eu/v8/Purchase/json/ENG/COMP',
