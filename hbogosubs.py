@@ -291,7 +291,11 @@ class HBOGoSubtitleDownloader(object):
 
         soup = bs4.BeautifulSoup(r.text, 'lxml-html')
 
-        canonical_url = soup.find('link', rel='canonical').get('href')
+        try:
+            canonical_url = soup.find('link', rel='canonical').get('href')
+        except AttributeError:
+            self.logger.error(' '.join(soup.find('main').stripped_strings))
+            sys.exit(1)
         canonical_path = urlparse(canonical_url).path
 
         details = soup.find(class_='modal-details')
