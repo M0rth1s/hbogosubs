@@ -11,6 +11,7 @@ import signal
 import sys
 import time
 import uuid
+from collections import OrderedDict
 from getpass import getpass
 from operator import truediv
 from urllib.parse import urlparse
@@ -375,24 +376,26 @@ class HBOGoSubtitleDownloader(object):
 
     def download_content(self, content_id, content_name):
         payload = {
-            'Purchase': {
-                '@xmlns': 'go:v8:interop',
-                '@xmlns:i': 'http://www.w3.org/2001/XMLSchema-instance',
-                'AllowHighResolution': 'false',
-                'ContentId': content_id,
-                'CustomerId': self.customer_id,
-                'Individualization': self.device_indiv,
-                'OperatorId': self.operator_id,
-                'IsFree': 'false',
-                'RequiredPlatform': 'COMP',
-                'UseInteractivity': 'false',
-            },
+            # OrderedDict is used for Python 3.6 compatibility
+            'Purchase': OrderedDict([
+                ('@xmlns', 'go:v8:interop'),
+                ('@xmlns:i', 'http://www.w3.org/2001/XMLSchema-instance'),
+                ('AllowHighResolution', 'false'),
+                ('ContentId', content_id),
+                ('ApplicationLanguage', 'ENG'),  # NOTE: This parameter is order-sensitive
+                ('CustomerId', self.customer_id),
+                ('Individualization', self.device_indiv),
+                ('IsFree', 'false'),
+                ('OperatorId', self.operator_id),
+                ('RequiredPlatform', 'COMP'),
+                ('UseInteractivity', 'false'),
+            ]),
         }
 
         raw_payload = xmltodict.unparse(payload, full_document=False)
 
         r = self.session.post(
-            f'https://{self.region.alpha_2}api.hbogo.eu/v8/Purchase/json/ENG/COMP',
+            'https://mediaservice-purchase-api.hbogo.eu/v8/Purchase/json/ENG/COMP',
             data=raw_payload,
         )
         resp = r.json()
