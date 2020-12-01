@@ -307,7 +307,10 @@ class HBOGoSubtitleDownloader(object):
             content_type = None
 
             if selected_season:
-                if urlparse(selected_season.get('href')).path == canonical_path:
+                if args.episode:
+                    content_type = 'episode'
+                    wanted_ep = args.episode
+                elif urlparse(selected_season.get('href')).path == canonical_path:
                     content_type = 'season'
                 elif selected_ep:
                     content_type = 'episode'
@@ -673,6 +676,12 @@ if __name__ == '__main__':
         nargs='*',
         metavar='url',
         help='one or more URLs to a movie, series, season or episode',
+    )
+    parser.add_argument(
+        '-e',
+        '--episode',
+        type=int,
+        help='download a specific episode by number',
     )
     parser.add_argument(
         '-c',
