@@ -427,7 +427,10 @@ class HBOGoSubtitleDownloader(object):
             self.logger.info('Found direct subtitle links')
             self.download_subtitles(sub_tracks, content_name)
         else:
-            self.logger.info('Downloading subtitles from manifest')
+            if self.args.force_ism:
+                self.logger.info('Downloading subtitles from manifest')
+            else:
+                self.logger.info('Direct subtitles not found, downloading from manifest')
             self.download_from_ism(resp['Purchase']['MediaUrl'], content_name, self.args.output_format)
 
     def download_subtitles(self, sub_tracks, output_name):
@@ -484,7 +487,11 @@ class HBOGoSubtitleDownloader(object):
 
         streams = [x for x in manifest['SmoothStreamingMedia']['StreamIndex'] if x['@Type'] == 'text']
 
+        has_subtitles = False
+
         for (index, stream) in enumerate(streams):
+            has_subtitles = True
+
             lang = stream['@Language'].lower()
 
             fmt = stream['QualityLevel']['@FourCC'].upper()
@@ -610,6 +617,9 @@ class HBOGoSubtitleDownloader(object):
                     r = pycaption.DFXPReader().read(xml_data)
                     w = pycaption.SRTWriter().write(r)
                     fd.write(w.encode('utf-8-sig'))
+
+        if not has_subtitles:
+            self.logger.info('No subtitles available')
 
     def main(self, args):
         self.args = args
