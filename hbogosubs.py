@@ -23,6 +23,8 @@ import pycountry
 import requests
 import xmltodict
 from pymp4.parser import Box
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 from tqdm import tqdm
 
 
@@ -38,6 +40,10 @@ class HBOGoSubtitleDownloader(object):
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                           '(KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36',
         }
+        self.session.timeout = 5
+        adapter = HTTPAdapter(max_retries=Retry(total=5, backoff_factor=1))
+        self.session.mount('http://', adapter)
+        self.session.mount('https://', adapter)
 
         self.operators = {}
 
