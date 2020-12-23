@@ -466,6 +466,9 @@ class HBOGoSubtitleDownloader(object):
                 'response': lambda r, *args, **kwargs: self.check_error(r, fatal=False),
             })
 
+            if not r.ok:
+                continue
+
             if r.content.startswith(b'\xef\xbb\xbf'):
                 self.logger.debug('Encoding detected as: utf-8-sig')
                 r.encoding = 'utf-8-sig'
